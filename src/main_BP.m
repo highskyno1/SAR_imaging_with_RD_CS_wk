@@ -82,7 +82,6 @@ y_range = linspace(-y_offset,(Na-1)/Fa*Vr+y_offset,Na);     % 纵向范围
 echo_s4 = zeros(size(X)) + 1i .* zeros(size(X));            % 投影栅格矩阵
 
 %% 使用GPU进行加速
-% 生成投影栅格矩阵
 if  is_use_gpu && canUseGPU
     echo_s2 = gpuArray(echo_s2);
     echo_s4 = gpuArray(echo_s4);
