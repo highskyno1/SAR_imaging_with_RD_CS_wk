@@ -96,7 +96,7 @@ X_max = max(x_range);
 k1 = tan(theta_bw/2);               % 上边斜率
 k2 = -tan(theta_bw/2);              % 下边斜率
 b1 = X_min * k1;                    % 上下边截距
-b2 = X_max * k2;
+b2 = X_min * k2;
 % 距离向插值
 up_rat = 4;                         % 插值系数
 up_Nr = Nr * up_rat;                % 插值后的点数
