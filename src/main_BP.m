@@ -82,6 +82,7 @@ y_range = linspace(-y_offset,(Na-1)/Fa*Vr+y_offset,Na);     % 纵向范围
 echo_s4 = zeros(size(X)) + 1i .* zeros(size(X));            % 投影栅格矩阵
 
 %% 使用GPU进行加速
+% 生成投影栅格矩阵
 if  is_use_gpu && canUseGPU
     echo_s2 = gpuArray(echo_s2);
     echo_s4 = gpuArray(echo_s4);
@@ -92,7 +93,6 @@ end
 %% 第三步 方位向累加
 % 计算梯形遮罩参数
 X_min = min(x_range);
-X_max = max(x_range);
 k1 = tan(theta_bw/2);               % 上边斜率
 k2 = -tan(theta_bw/2);              % 下边斜率
 b1 = X_min * k1;                    % 上下边截距
