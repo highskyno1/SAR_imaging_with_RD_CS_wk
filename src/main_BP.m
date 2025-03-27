@@ -2,14 +2,17 @@
     本代码用于对雷达的回波数据，利用BP算法进行成像，利用电平饱和法以及直方图均衡法，
     提高成像质量。
     2025/3/18 21:36
+    修复叠加部分斜距计算BUG，实现聚焦
+    2025/3/27 15:40
 %}
 %% 数据读取
 % 加载数据
-% close all
+close all
 echo1 = importdata('CDdata1.mat');
 echo2 = importdata('CDdata2.mat');
 % 将回波拼装在一起
 echo = single([echo1;echo2]);
+% echo = echo(1:512,:);
 % 加载参数
 para = importdata('CD_run_params.mat');
 Fr = para.Fr;   % 距离向采样率
@@ -62,7 +65,7 @@ ta_axis = ta_axis';
 
 %% 第一步 距离压缩
 % 方位向下变频
-echo = echo .* exp(-2i*pi*f_nc.*ta_axis);
+% echo = echo .* exp(-2i*pi*f_nc.*ta_axis);
 % 距离向傅里叶变换
 echo_s1 = fft(echo,[],2);
 % 距离向距离压缩滤波器
@@ -107,9 +110,9 @@ X_2 = X.^2;
 h = waitbar(0,'BPA');
 for i = 1:Na
     % 计算栅格点到雷达的距离
-    R = sqrt(X_2 + (Y - ta_axis(i)*Vr).^2);
+    R = sqrt(X_2 + (Y - ta_axis(i)*Vr+R0*tan(theta_rc)).^2);
     % 将距离转换成时间并将时间归化到时域点数
-    idx = round((R-R0*cos(theta_rc))*2/c*Fr*up_rat);
+    idx = round((R-R0)*2/c*Fr*up_rat);
     % 防止越界
     idx(idx>up_Nr) = up_Nr;
     idx(idx<=0) = 1;
@@ -138,12 +141,12 @@ echo_s5 = abs(echo_s4);
 % 绘制直方图
 figure;
 histogram(echo_s5(:),100);
-saturation = 1e3;
+saturation = 2e3;
 figure;
 % 上下翻转
 echo_s5 = flip(echo_s5,1);
 % 饱和处理
-echo_s5(echo_s5 > 1e3) = saturation;
+echo_s5(echo_s5 > saturation) = saturation;
 imagesc(x_range,y_range,echo_s5);
 title('处理结果(BP算法)')
 % 直方图均衡
