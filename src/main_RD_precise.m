@@ -81,7 +81,7 @@ echo_s3 = ifft(echo_s3,[],1);
 
 %% 数据最后的矫正
 % 根据实际观感，方位向做合适的循环位移
-echo_s4 = circshift(abs(echo_s3), -3328, 1);
+echo_s4 = circshift(abs(echo_s3), -3193, 1);
 % 上下镜像
 echo_s4 = flipud(echo_s4);
 echo_s5 = abs(echo_s4);
