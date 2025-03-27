@@ -1,6 +1,8 @@
 %{
     本代码用于对雷达的回波数据，利用RD算法~普通版本进行成像。
     2023/11/18 20:47
+    修复RCMC后无法聚焦的bBUG，距离徙动校正应该在波数域做，详见第二步
+    2025/3/27 11:50
 %}
 close all;
 %% 数据读取
@@ -47,16 +49,16 @@ ta_axis = ta_axis';
 fa_axis = fa_axis';
 
 %% 第一步 距离压缩
+% 方位向下变频
+echo_s1 = echo .* exp(-2i*pi*f_nc.*ta_axis);
 % 距离向傅里叶变换
-echo_s1 = fft(echo,[],2);
+echo_s1 = fft(echo_s1,[],2);
 % 距离向距离压缩滤波器
 echo_d1_mf = exp(1i*pi/Kr.*fr_axis.^2);
 % 距离向匹配滤波
-echo_s1 = ifft(echo_s1 .* echo_d1_mf,[],2);
+echo_s1 = echo_s1 .* echo_d1_mf;
 
 %% 第二步 方位向傅里叶变换&距离徙动矫正
-% 方位向下变频
-echo_s1 = echo_s1 .* exp(-2i*pi*f_nc.*ta_axis);
 % 方位向傅里叶变换
 echo_s2 = fft(echo_s1,[],1);
 % 计算徙动因子
@@ -64,6 +66,8 @@ D = lamda^2*R0/8/Vr^2.*fa_axis.^2;
 G = exp(4i*pi/c.*fr_axis.*D);
 % 校正
 echo_s2 = echo_s2.* G;
+% 滚回距离多普勒域
+echo_s2 = ifft(echo_s2,[],2);
 
 %% 第三步 方位压缩
 % 方位向滤波器
