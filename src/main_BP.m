@@ -53,8 +53,7 @@ echo = padarray(echo,[0, round(Nr/3)]);
 
 %% 轴产生
 [Na,Nr] = size(echo);
-% 距离向时间轴及频率轴
-tr_axis = 2*R0/c + (0:Nr-1)/Fr;   % 距离向时间轴
+% 距离向频率轴
 fr_gap = Fr/Nr;
 fr_axis = fftshift(-Nr/2:Nr/2-1).*fr_gap;   % 距离向频率轴
 
@@ -64,8 +63,7 @@ ta_axis = (0:Na-1)/Fa;    % 方位向时间轴
 ta_axis = ta_axis';
 
 %% 第一步 距离压缩
-% 方位向下变频
-% echo = echo .* exp(-2i*pi*f_nc.*ta_axis);
+% BP算法不用做方位向下变频
 % 距离向傅里叶变换
 echo_s1 = fft(echo,[],2);
 % 距离向距离压缩滤波器
@@ -104,15 +102,18 @@ b2 = X_min * k2;
 up_rat = 4;                         % 插值系数
 up_Nr = Nr * up_rat;                % 插值后的点数
 echo_s3 = interpft(echo_s2,up_Nr,2);
-% 提前算好X^2避免重复运算
-X_2 = X.^2;
-% figure;
+% 提前算好一些参数避免重复运算
+X_2 = X.^2;                         % X^2
+phase_const = 1j*4*pi/lambda;
+scale_factor = 2*Fr*up_rat/c;
+Y_const = Y + R0*tan(theta_rc);
+% 方位向累加
 h = waitbar(0,'BPA');
 for i = 1:Na
     % 计算栅格点到雷达的距离
-    R = sqrt(X_2 + (Y - ta_axis(i)*Vr+R0*tan(theta_rc)).^2);
+    R = sqrt(X_2 + (Y_const - ta_axis(i)*Vr).^2);
     % 将距离转换成时间并将时间归化到时域点数
-    idx = round((R-R0)*2/c*Fr*up_rat);
+    idx = round((R-R0) * scale_factor);
     % 防止越界
     idx_valid = idx >= 1 & idx <= up_Nr;
     idx(~idx_valid) = 1;
@@ -130,7 +131,7 @@ for i = 1:Na
         mask = (Y < k1 * X + b11) & (Y > k2 * X + b21);
     end
     % 应用遮罩并累加
-    echo_s4 = echo_s4 + (foo(idx) .* mask .* idx_valid) .* exp(1j*4*pi*R/lambda);
+    echo_s4 = echo_s4 + (foo(idx) .* mask .* idx_valid) .* exp(phase_const*R);
     % 更新进度条
     waitbar(i/Na);
 end
@@ -139,7 +140,7 @@ echo_s5 = abs(echo_s4);
 % 绘制直方图
 figure;
 histogram(echo_s5(:),100);
-saturation = 2e3;
+saturation = 1e3;
 figure;
 % 上下翻转
 echo_s5 = flip(echo_s5,1);
