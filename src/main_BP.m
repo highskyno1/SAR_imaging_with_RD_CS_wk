@@ -114,12 +114,10 @@ for i = 1:Na
     % 将距离转换成时间并将时间归化到时域点数
     idx = round((R-R0)*2/c*Fr*up_rat);
     % 防止越界
-    idx(idx>up_Nr) = up_Nr;
-    idx(idx<=0) = 1;
-    % 累积
+    idx_valid = idx >= 1 & idx <= up_Nr;
+    idx(~idx_valid) = 1;
+    % 提取回波
     foo = echo_s3(i,:);
-    foo(up_Nr) = 0;
-    foo(1) = 0;
     % 生成遮罩
     % 根据雷达方位向位置移动截距
     b11 = b1 + ta_axis(i)*Vr;
@@ -131,8 +129,8 @@ for i = 1:Na
         % 梯形遮罩
         mask = (Y < k1 * X + b11) & (Y > k2 * X + b21);
     end
-    % 应用遮罩
-    echo_s4 = echo_s4 + (foo(idx) .* mask) .* exp(1j*4*pi*R/lambda);
+    % 应用遮罩并累加
+    echo_s4 = echo_s4 + (foo(idx) .* mask .* idx_valid) .* exp(1j*4*pi*R/lambda);
     % 更新进度条
     waitbar(i/Na);
 end
