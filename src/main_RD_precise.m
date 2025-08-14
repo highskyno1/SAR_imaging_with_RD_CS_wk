@@ -34,7 +34,7 @@ echo = padarray(echo,[round(Na/6), round(Nr/3)]);
 
 %% 轴产生
 % 距离向时间轴及频率轴
-tr_axis = 2*R0/c + (-Nr/2:Nr/2-1)/Fr;   % 距离向时间轴
+tr_axis = 2*R0/c + (0:Nr-1)/Fr;   % 距离向时间轴
 fr_gap = Fr/Nr;
 fr_axis = fftshift(-Nr/2:Nr/2-1).*fr_gap;   % 距离向频率轴
 
