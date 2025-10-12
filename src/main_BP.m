@@ -106,7 +106,7 @@ echo_s3 = interpft(echo_s2,up_Nr,2);
 X_2 = X.^2;                         % X^2
 phase_const = 1j*4*pi/lambda;
 scale_factor = 2*Fr*up_rat/c;
-Y_const = Y + R0*tan(theta_rc);
+Y_const = Y + R0*sin(theta_rc);
 % 方位向累加
 h = waitbar(0,'BPA');
 for i = 1:Na
@@ -153,3 +153,4 @@ echo_res = gather(echo_s5 ./ saturation);
 echo_res = adapthisteq(echo_res,"ClipLimit",0.004,"Distribution","exponential","Alpha",0.5);
 figure;
 imshow(echo_res);
+
