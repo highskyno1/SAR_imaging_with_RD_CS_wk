@@ -71,17 +71,15 @@ echo_s2 = ifft(echo_s2,[],2);
 
 %% 第三步 方位压缩
 % 方位向滤波器
-echo_d3_mf = exp(-1i*pi/Ka.*fa_axis.^2);
+echo_d3_mf = exp(-1i*pi/Ka.*(fa_axis-f_nc).^2);
 % 方位向脉冲压缩
 echo_s3 = echo_s2 .* echo_d3_mf;
 % 方位向逆傅里叶变换
 echo_s3 = ifft(echo_s3,[],1);
 
 %% 数据最后的矫正
-% 根据实际观感，方位向做合适的循环位移
-echo_s4 = circshift(abs(echo_s3), -3193, 1);
 % 上下镜像
-echo_s4 = flipud(echo_s4);
+echo_s4 = flipud(echo_s3);
 echo_s5 = abs(echo_s4);
 saturation = 50;
 echo_s5(echo_s5 > saturation) = saturation;
